@@ -12,20 +12,41 @@
 
 using namespace std;
 
-enum GL_state { PLUS, MULTI, SUBTR, DIV, RESULT};
+enum GL_state { PLUS, MULTI, SUBTR, DIV, RESULT };
 GL_state state = RESULT;
-float a, b;
-bool ch=false;
+GL_state state1 = RESULT;
+int kk = 0;
+double a = 0, b;
+bool ch = false, point = false;
 
-string int_to_string(int n)
+string double_to_string(double n)
 {
+	if (n > -0.00001 && n < 0.00001)
+		n = 0;
 	stringstream s;
 	s << n;
 	return s.str();
 }
-int string_to_int(string s)
+double string_to_double(string s)
 {
-	return(atoi(s.c_str()));
+	double c;
+	c = atoi(s.c_str());
+	double k;
+	string s_double;
+	bool n = false;
+	for (string::iterator i = s.begin(); i != s.end(); i++)
+	{
+		if (n)
+			s_double = s_double + *i;
+		if (*i == '.')
+			n = true;
+	}
+	int len = s_double.length();
+	k = atoi(s_double.c_str());
+	for (int i = 0; i < len; i++)
+		k = k / 10;
+	c = c + k;
+	return c;
 }
 void Choise_states(Fl_Input* input)
 {
@@ -33,23 +54,38 @@ void Choise_states(Fl_Input* input)
 	switch (state)
 	{
 	case PLUS:
-		a = a + string_to_int(inp);
-		input->value(int_to_string(a).c_str());
+		a = a + string_to_double(inp);
+		input->value(double_to_string(a).c_str());
 		break;
 	case SUBTR:
-		a = a - string_to_int(inp);
-		input->value(int_to_string(a).c_str());
+		a = a - string_to_double(inp);
+		input->value(double_to_string(a).c_str());
 		break;
 	case RESULT:
-		a = string_to_int(inp);
+		a = string_to_double(inp);
 		break;
 	case MULTI:
-		a = a * string_to_int(inp);
-		input->value(int_to_string(a).c_str());
+		a = a * string_to_double(inp);
+		input->value(double_to_string(a).c_str());
 		break;
 	case DIV:
-		a = a / string_to_int(inp);
-		input->value(int_to_string(a).c_str());
+		if (-0.001 < string_to_double(inp) && string_to_double(inp) < 0.001)
+		{
+			if (kk == 0)
+				input->value("I CAN'T DO THIS");
+			if (kk == 1)
+				input->value("I SAID, THAT I CAN'T");
+			if (kk == 2)
+				input->value("OH... COME ON");
+			if (kk > 2)
+				input->value("JUST CLOSE ME");
+			kk++;
+		}
+		else
+		{
+			a = a / string_to_double(inp);
+			input->value(double_to_string(a).c_str());
+		}
 		break;
 	default:
 		break;
@@ -61,44 +97,129 @@ void Use_states(string but_s, Fl_Input* input)
 	switch (but)
 	{
 	case '+':
-		Choise_states(input);
-		state = PLUS;
+		state1 = PLUS;
 		ch = true;
 		break;
 	case '-':
-		Choise_states(input);
-		state = SUBTR;
+		state1 = SUBTR;
 		ch = true;
 		break;
 	case '*':
-		Choise_states(input);
-		state = MULTI;
+		state1 = MULTI;
 		ch = true;
 		break;
 	case '/':
-		Choise_states(input);
-		state = DIV;
+		state1 = DIV;
 		ch = true;
 		break;
 	case '=':
 		Choise_states(input);
+		a = 0;
 		state = RESULT;
+		ch = true;
 		break;
 	case 'C':
 		input->value('\0');
 		a = 0;
+		state = RESULT;
+		state1 = RESULT;
 		break;
 	default:
-		if ( ch==true)
+		switch (state1)
 		{
-			input->value('\0');
-			ch = false;
+		case PLUS:
+		{
+			if (ch == true)
+			{
+				Choise_states(input);
+				state = PLUS;
+				input->value('\0');
+				ch = false;
+				point = false;
+			}
+			if (but != '.' || point == false)
+			{
+				string inp = input->value();
+				inp = inp + but;
+				input->value(inp.c_str());
+				if (but == '.')
+					point = true;
+			}
 		}
-		string inp = input->value();
-		inp = inp + but;
-		input->value(inp.c_str());
 		break;
-
+		case SUBTR:
+		{
+			if (ch == true)
+			{
+				Choise_states(input);
+				state = SUBTR;
+				input->value('\0');
+				ch = false;
+				point = false;
+			}
+			if (but != '.' || point == false)
+			{
+				string inp = input->value();
+				inp = inp + but;
+				input->value(inp.c_str());
+				if (but == '.')
+					point = true;
+			}
+		}
+		break;
+		case MULTI:
+		{
+			if (ch == true)
+			{
+				Choise_states(input);
+				state = MULTI;
+				input->value('\0');
+				ch = false;
+				point = false;
+			}
+			if (but != '.' || point == false)
+			{
+				string inp = input->value();
+				inp = inp + but;
+				input->value(inp.c_str());
+				if (but == '.')
+					point = true;
+			}
+		}
+		break;
+		case DIV:
+		{
+			if (ch == true)
+			{
+				Choise_states(input);
+				state = DIV;
+				input->value('\0');
+				ch = false;
+				point = false;
+			}
+			if (but != '.' || point == false)
+			{
+				string inp = input->value();
+				inp = inp + but;
+				input->value(inp.c_str());
+				if (but == '.')
+					point = true;
+			}
+		}
+		break;
+		default:
+		{
+			if (but != '.' || point == false)
+			{
+				string inp = input->value();
+				inp = inp + but;
+				input->value(inp.c_str());
+				if (but == '.')
+					point = true;
+			}
+		}
+		break;
+		}
 	}
 }
 void Button_C(Fl_Widget* b, void* data)
@@ -106,8 +227,8 @@ void Button_C(Fl_Widget* b, void* data)
 	Fl_Input* input = (Fl_Input*)data;
 	Fl_Button* bt = (Fl_Button*)b;
 	string but = bt->label();
-	
-	Use_states(but,input);
+
+	Use_states(but, input);
 }
 
 int main()
@@ -116,6 +237,8 @@ int main()
 	win.begin();
 	Fl_Input inp(160, 50, 120, 30);
 	Fl_Button bt1(10, 100, 300, 300, "C");
+	bt1.color(5);
+	bt1.color2(6);
 	bt1.callback(Button_C, &inp);
 	//bt1.callback(Button_Func, 0);
 	for (int i = 0; i < 10; i++)
